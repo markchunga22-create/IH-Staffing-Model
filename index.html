@@ -424,34 +424,34 @@
 <nav class="topnav">
   <div class="topnav-brand">
     <div class="dot"></div>
-    <span>IH Predictive Staffing &amp; Burnout Risk Model</span>
+    <span>IH Staffing &amp; Burnout Risk Dashboard</span>
   </div>
-  <div class="topnav-right">DEMONSTRATION MODEL ONLY — Not actual IH data</div>
+  <div class="topnav-right">Portfolio project &nbsp;·&nbsp; Estimates based on published benchmarks</div>
 </nav>
 
 <!-- HEADER -->
 <header class="header">
   <div class="header-inner">
-    <h1>Predictive Staffing &amp; <span>Burnout Risk</span> Model</h1>
-    <p>Interior Health Authority — Unit-Level Analytics Dashboard</p>
+    <h1>Staffing &amp; <span>Burnout Risk</span> — Interior Health Units</h1>
+    <p>Exploring what proactive workforce analytics could look like for IH — built as a portfolio project</p>
     <div class="header-badges">
-      <span class="badge badge-teal">&#9679; Live Model</span>
-      <span class="badge badge-white">Mark Chunga &nbsp;|&nbsp; MBA (Finance), MSc (IS &amp; BA)</span>
-      <span class="badge badge-yellow">&#9888; Demonstration Estimates Only</span>
+      <span class="badge badge-teal">&#9679; Interactive</span>
+      <span class="badge badge-white">Mark Chunga &nbsp;·&nbsp; MBA (Finance) &nbsp;·&nbsp; MSc (IS & Business Analytics)</span>
+      <span class="badge badge-yellow">&#9888; Estimates only — not actual IH operational data</span>
     </div>
   </div>
 </header>
 
 <!-- DISCLAIMER -->
 <div class="disclaimer">
-  &#9888;&nbsp; All data and model outputs are <strong>estimates for demonstration purposes only</strong>, calibrated to published CIHI 2024 benchmarks and BC Ministry of Health reports. This tool does not represent actual Interior Health Authority operational data and should not be used for clinical or staffing decisions without validation against real IH data.
+  &#9888;&nbsp; <strong>Note:</strong> All figures in this dashboard are estimates calibrated to CIHI 2024 benchmarks and BC Ministry of Health data — not actual Interior Health operational data. This tool was built as a portfolio demonstration and should not be used for real staffing or clinical decisions without validation against IH's own systems.
 </div>
 
 <!-- MAIN -->
 <main class="main">
 
   <!-- CONTROLS -->
-  <div class="section-label">Model Inputs — Adjust to Simulate</div>
+  <div class="section-label">Adjust inputs — outputs update in real time</div>
   <div class="controls-panel">
     <div class="controls-grid">
       <div class="ctrl">
@@ -496,17 +496,17 @@
   </div>
 
   <!-- KPI METRICS -->
-  <div class="section-label">Current Model Outputs</div>
+  <div class="section-label">Current model outputs</div>
   <div class="metrics-grid" id="metrics-grid"></div>
 
   <!-- BURNOUT + SCHEDULE -->
   <div class="grid2">
     <div class="card">
-      <h3>Burnout Risk by Unit</h3>
+      <h3>Burnout risk by unit type</h3>
       <div id="unit-risks"></div>
     </div>
     <div class="card">
-      <h3>Cost-Optimized Schedule</h3>
+      <h3>Optimal staffing &amp; daily cost by unit</h3>
       <div class="sched-row header">
         <span>Unit</span>
         <span>FTE Needed</span>
@@ -515,14 +515,14 @@
       </div>
       <div id="sched-rows"></div>
       <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--grey-200);font-size:12px;color:var(--grey-400)">
-        System daily total: <strong id="total-daily" style="color:var(--grey-900)">—</strong>
+        All units combined (daily): <strong id="total-daily" style="color:var(--grey-900)">—</strong>
       </div>
     </div>
   </div>
 
   <!-- FORECAST CHART -->
   <div class="card" style="margin-bottom:1.25rem">
-    <h3>12-Month Patient Volume &amp; Staffing Forecast</h3>
+    <h3>12-month staffing &amp; volume forecast</h3>
     <div class="chart-legend">
       <span><i style="background:#378ADD"></i>Patient volume</span>
       <span><i style="background:#1D9E75"></i>Optimal FTE required</span>
@@ -534,17 +534,17 @@
   <!-- SICK CALL + SHIFT CHARTS -->
   <div class="grid2" style="margin-bottom:1.25rem">
     <div class="card">
-      <h3>Sick Call Rate → Coverage Gap</h3>
+      <h3>Sick call rate vs. coverage gap (FTE)</h3>
       <div class="chart-wrap2"><canvas id="chart-sick"></canvas></div>
     </div>
     <div class="card">
-      <h3>Shift Length → Burnout Score</h3>
+      <h3>Shift length vs. burnout score</h3>
       <div class="chart-wrap2"><canvas id="chart-shift"></canvas></div>
     </div>
   </div>
 
   <!-- INSIGHTS -->
-  <div class="section-label">Model Insights &amp; Recommendations</div>
+  <div class="section-label">Analysis &amp; recommendations</div>
   <div class="card" style="margin-bottom:1.25rem">
     <div id="insights"></div>
   </div>
@@ -553,11 +553,9 @@
 
 <!-- FOOTER -->
 <footer class="footer">
-  <strong>Predictive Staffing &amp; Burnout Risk Model</strong> &nbsp;|&nbsp; Interior Health Authority &nbsp;|&nbsp;
-  Built by <strong>Mark Chunga</strong> — MBA (Finance), MSc (IS &amp; Business Analytics)<br>
-  Analytical framework: weighted burnout index (Maslach MBI) + seasonal demand forecasting + linear cost optimization<br>
-  Data sources: CIHI 2024, BC Ministry of Health Annual Service Plan 2024/25, BCNU Collective Agreement<br>
-  <span style="color:#CA8A04">&#9888; DEMONSTRATION MODEL ONLY — All values are estimates. Not actual Interior Health Authority operational data.</span>
+  Built by <strong>Mark Chunga</strong> &nbsp;·&nbsp; MBA (Finance), MSc (IS &amp; Business Analytics) &nbsp;·&nbsp; Interior Health Authority Portfolio Project &nbsp;·&nbsp; June 2026<br>
+  Burnout index grounded in the Maslach Burnout Inventory framework &nbsp;·&nbsp; Staffing and cost benchmarks from CIHI 2024 and BC Ministry of Health Annual Service Plan 2024/25<br>
+  <span style="color:#CA8A04">&#9888; All figures are estimates for demonstration purposes. This is not actual Interior Health Authority operational data.</span>
 </footer>
 
 <script>
@@ -794,30 +792,30 @@ function buildInsights(v, u, bScore, fte, buffer, dc) {
   const bPct = Math.round(bScore * 100);
 
   if (bScore >= 0.70) {
-    ins.push(`<span class="itag itag-critical">CRITICAL</span><strong>${u.name}</strong> burnout risk at ${bPct}% — exceeds 70% intervention threshold. Recommend mandatory recovery days, overtime caps, and immediate float pool activation.`);
+    ins.push(`<span class="itag itag-critical">ACTION NEEDED</span><strong>${u.name}</strong> is at ${bPct}% burnout risk — past the threshold where monitoring is enough. The scheduling model needs to change: consider mandatory recovery days, overtime limits, and float pool support. Left unaddressed, burnout at this level drives attrition and erodes care quality.`);
   } else if (bScore >= 0.45) {
-    ins.push(`<span class="itag itag-monitor">MONITOR</span><strong>${u.name}</strong> is at ${bPct}% burnout risk — approaching elevated territory. Proactive roster review and wellness check-ins recommended this quarter.`);
+    ins.push(`<span class="itag itag-monitor">WATCH CLOSELY</span><strong>${u.name}</strong> is at ${bPct}% burnout risk — not critical yet, but trending in a concerning direction. A proactive roster review and team check-in now is significantly cheaper than addressing a burnout crisis later.`);
   } else {
-    ins.push(`<span class="itag itag-stable">STABLE</span><strong>${u.name}</strong> burnout risk at ${bPct}% is within healthy bounds. Continue current scheduling model and review quarterly.`);
+    ins.push(`<span class="itag itag-stable">ON TRACK</span><strong>${u.name}</strong> burnout risk is at ${bPct}% — within a healthy range under these inputs. Continue current scheduling and revisit quarterly or when volume changes significantly.`);
   }
 
   if (v.sick >= 15) {
-    ins.push(`<span class="itag itag-critical">CRITICAL</span>Sick call rate of ${v.sick}% is critically high — generating a ${buffer} FTE daily coverage gap. Immediate float pool deployment and attendance incentive review required.`);
+    ins.push(`<span class="itag itag-critical">SICK CALLS</span>At ${v.sick}%, sick call volume is generating a ${buffer} FTE daily gap — that's a structural problem, not a short-term blip. Float pool or agency coverage is needed immediately, alongside a review of what's driving the absence rate.`);
   } else if (v.sick >= 8) {
-    ins.push(`<span class="itag itag-monitor">STAFFING</span>Sick call rate of ${v.sick}% exceeds Interior Health's 6% benchmark. A ${buffer} FTE buffer has been built into the optimal staffing model.`);
+    ins.push(`<span class="itag itag-monitor">SICK CALLS</span>The current ${v.sick}% sick call rate sits above IH's 6% benchmark. A ${buffer} FTE buffer is already built into the staffing model to cover it. If this rate continues to rise, it warrants a closer look at workload distribution and staff wellbeing.`);
   }
 
   if (v.shift === 12 && v.consec >= 5) {
-    ins.push(`<span class="itag itag-monitor">SCHEDULE</span>${v.consec} consecutive 12-hour shifts is a high-risk pattern. Evidence from Maslach Burnout Inventory research shows fatigue-related error rates rise sharply beyond 4 consecutive shifts. Recommend 3-on / 2-off rotation.`);
+    ins.push(`<span class="itag itag-monitor">SHIFT PATTERN</span>${v.consec} consecutive 12-hour shifts is a risk pattern worth addressing. The evidence is consistent — fatigue and error rates rise sharply after four consecutive shifts. A structured 3-on / 2-off rotation would reduce risk without significantly changing coverage levels.`);
   }
 
   if (v.season >= 8) {
-    ins.push(`<span class="itag itag-monitor">SEASONAL</span>Peak seasonal illness index (${v.season}/10) will drive volume surges. Activate surge staffing agreements and coordinate with recruitment 6–8 weeks ahead of peak period.`);
+    ins.push(`<span class="itag itag-monitor">SEASONAL SURGE</span>A seasonal index of ${v.season}/10 signals an approaching volume surge. Surge staffing arrangements — float pool, agency agreements, voluntary overtime — should be confirmed 6 to 8 weeks ahead of the peak period, not reactively once it arrives.`);
   }
 
   const dc8 = dailyCost(optimalFTE(v.vol, v.sick, u.acuity, u.ratio, 8), u.costHr, 8);
   if (dc8 < dc) {
-    ins.push(`<span class="itag itag-cost">COST</span>Switching ${u.name} to 8-hour shifts would reduce daily labour cost by ${fmt(dc - dc8)} — though scheduling complexity and staff satisfaction trade-offs should be evaluated before any change.`);
+    ins.push(`<span class="itag itag-cost">COST CONSIDERATION</span>Shifting to 8-hour rotations would reduce daily labour cost by ${fmt(dc - dc8)} for this unit. The tradeoff is real though — scheduling becomes more complex and most experienced staff prefer 12-hour shifts. Both scenarios should be modelled before making a change.`);
   }
 
   document.getElementById('insights').innerHTML = ins.map(i => `<div class="insight">${i}</div>`).join('');
