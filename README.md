@@ -4,7 +4,7 @@ Created for portfolio purposes only. Not affiliated with Interior Health Authori
 
 ## Files Included
 - index.html (Interactive HTML Dashboard)
-- IH_Dashboard.twbx (Tableau Workbook)
+- IH Staffing Model 2026.twbx (Tableau Workbook)
 - IH_Dashboard.JPG
 - data/ (CSV source files)
 
