@@ -8,7 +8,7 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
+  :root {F
     --navy:           #0D1B2A;
     --navy-mid:       #1B2F4E;
     --navy-light:     #233A5C;
@@ -59,10 +59,9 @@
   }
   .topnav-brand .dot {
     width: 6px; height: 6px;
-    background: var(--red);
+    background: var(--green);
     border-radius: 50%;
-    animation: pulse 2.5s ease-in-out infinite;
-  }
+    }
   @keyframes pulse {
     0%,100% { opacity: 1; transform: scale(1); }
     50%      { opacity: 0.5; transform: scale(1.3); }
@@ -299,13 +298,8 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }
-  .card h3::before {
-    content: '';
-    display: inline-block;
-    width: 3px; height: 14px;
-    background: var(--navy);
-    flex-shrink: 0;
-    border-radius: 1px;
+  text-transform: none;
+letter-spacing: 0.01em;
   }
 
   .grid2 {
@@ -461,7 +455,7 @@
   <div class="header-inner">
     <div class="header-eyebrow">Interior Health Authority &nbsp;·&nbsp; Workforce Analytics</div>
     <h1>Predictive Staffing &amp; <em>Burnout Risk</em> Model</h1>
-    <p>Built to explore what proactive workforce planning could look like at IH using published benchmarks and the Maslach Burnout Inventory as the foundation.</p>
+    <p>Built on published benchmarks and the Maslach Burnout Inventory to explore what proactive workforce planning would look like at IH.</p>
     <div class="header-badges">
       <span class="badge badge-red">&#9679;&nbsp; Interactive</span>
       <span class="badge badge-white">Mark Chunga &nbsp;·&nbsp; MBA (Finance) &nbsp;·&nbsp; MSc (IS &amp; Business Analytics)</span>
