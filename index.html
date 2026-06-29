@@ -625,7 +625,7 @@ function fmt(n) { return '$'+Math.round(n).toLocaleString(); }
 function recalc() {
   const v = getVals(), u = UNITS[v.unit];
   document.getElementById('out-vol').textContent    = `${v.vol} patients`;
-  document.getElementById('out-season').textContent = `${v.season} / 10 — ${seasonLabel(v.season)}`;
+  document.getElementById('out-season').textContent = `${v.season} / 10 (${seasonLabel(v.season)})`;
   document.getElementById('out-sick').textContent   = `${v.sick}%`;
   document.getElementById('out-consec').textContent = `${v.consec} days`;
 
