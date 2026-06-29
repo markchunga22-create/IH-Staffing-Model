@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Predictive Staffing & Burnout Risk Model — Interior Health Authority Portfolio</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:           #0D1B2A;
+    --navy-mid:       #1B2F4E;
+    --navy-light:     #233A5C;
+    --red:            #C41E2A;
+    --red-light:      #F8D7DA;
+    --red-dark:       #8B1520;
+    --green:          #1A7A3C;
+    --green-light:    #D4EDDA;
+    --yellow:         #B8860B;
+    --yellow-light:   #FFF3CD;
+    --yellow-solid:   #F0A500;
+    --black:          #0A0A0A;
+    --off-black:      #1A1A1A;
+    --white:          #FFFFFF;
+    --off-white:      #F5F5F5;
+    --light-grey:     #E8E8E8;
+    --mid-grey:       #999999;
+    --dark-grey:      #444444;
+    --shadow-sm:      0 1px 3px rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.12);
+    --shadow-md:      0 4px 10px rgba(0,0,0,0.20), 0 2px 4px rgba(0,0,0,0.12);
+    --shadow-lg:      0 10px 30px rgba(0,0,0,0.25);
+    --radius-sm:      4px;
+    --radius:         6px;
+    --radius-lg:      8px;
+    --radius-xl:      10px;
+  }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--off-white);
+    color: var(--off-black);
+    min-height: 100vh;
+    font-size: 12px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── TOP NAV ── */
+  .topnav {
+    background: var(--black);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 50px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 2px solid var(--red);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+  .topnav-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .topnav-brand .dot {
+    width: 7px; height: 7px;
+    background: var(--red);
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(196,30,42,0.8);
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); box-shadow: 0 0 6px rgba(196,30,42,0.8); }
+    50%      { opacity: 0.6; transform: scale(1.25); box-shadow: 0 0 14px rgba(196,30,42,0.4); }
+  }
+  .topnav-brand span {
+    color: var(--white);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+  .topnav-right {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: var(--mid-grey);
+    letter-spacing: 0.01em;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--navy);
+    border-bottom: 3px solid var(--red);
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,0.012) 0px,
+      rgba(255,255,255,0.012) 1px,
+      transparent 1px,
+      transparent 60px
+    );
+    pointer-events: none;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0;
+    width: 4px; height: 100%;
+    background: var(--red);
+    pointer-events: none;
+  }
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .header-eyebrow {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .header h1 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: clamp(20px, 3vw, 30px);
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .header h1 em {
+    font-style: normal;
+    color: var(--red);
+    font-weight: 700;
+  }
+  .header p {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.65);
+    margin-top: 10px;
+    max-width: 560px;
+    line-height: 1.6;
+  }
+  .header-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .badge-teal   { background: transparent; color: var(--red); border: 1px solid var(--red); }
+  .badge-white  { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.80); border: 1px solid rgba(255,255,255,0.18); }
+  .badge-yellow { background: transparent; color: rgba(255,255,255,0.60); border: 1px solid rgba(255,255,255,0.25); }
+
+  /* ── DISCLAIMER ── */
+  .disclaimer {
+    background: var(--navy-light);
+    border-left: 3px solid var(--red);
+    padding: 10px 20px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.55;
+    font-weight: 400;
+  }
+  .disclaimer strong { font-weight: 700; color: var(--white); }
+
+  /* ── MAIN ── */
+  .main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.75rem 2rem;
+  }
+
+  /* ── SECTION LABELS ── */
+  .section-label {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--mid-grey);
+    text-transform: uppercase;
+    margin-bottom: 0.875rem;
+    margin-top: 1.75rem;
+    padding-left: 10px;
+    border-left: 3px solid var(--red);
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* ── CONTROLS ── */
+  .controls-panel {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--light-grey);
+    border-top: 2px solid var(--navy);
+    margin-bottom: 1.25rem;
+  }
+  .controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(165px, 1fr));
+    gap: 1.25rem;
+  }
+  .ctrl { display: flex; flex-direction: column; gap: 7px; }
+  .ctrl label {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--dark-grey);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .ctrl select {
+    appearance: none;
+    background: var(--off-white);
+    border: 1.5px solid var(--light-grey);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--off-black);
+    cursor: pointer;
+    transition: border-color .15s, box-shadow .15s;
+    width: 100%;
+  }
+  .ctrl select:focus { outline: none; border-color: var(--navy-mid); box-shadow: 0 0 0 3px rgba(13,27,42,0.12); }
+  .ctrl input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--light-grey);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .ctrl input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 17px; height: 17px;
+    border-radius: 50%;
+    background: var(--navy);
+    border: 2.5px solid var(--white);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .ctrl input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    background: var(--red);
+    box-shadow: 0 2px 8px rgba(196,30,42,0.45);
+  }
+  .ctrl-val {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--navy);
+  }
+
+  /* ── METRICS ── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.25rem;
+  }
+  .metric-card {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 1.1rem 1.25rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--light-grey);
+    border-top: 3px solid var(--navy);
+    transition: transform .15s, box-shadow .15s;
+    cursor: default;
+  }
+  .metric-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .metric-card.danger { border-top-color: var(--red); background: #fff8f8; }
+  .metric-card.warn   { border-top-color: var(--yellow-solid); background: #fffdf0; }
+  .metric-card.ok     { border-top-color: var(--green); }
+  .metric-label {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--mid-grey);
+    margin-bottom: 8px;
+  }
+  .metric-value {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--off-black);
+    letter-spacing: -0.02em;
+  }
+  .metric-card.danger .metric-value { color: var(--red); }
+  .metric-card.warn   .metric-value { color: var(--yellow); }
+  .metric-card.ok     .metric-value { color: var(--green); }
+  .metric-sub {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: var(--mid-grey);
+    margin-top: 5px;
+    font-weight: 400;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 1.375rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--light-grey);
+  }
+  .card h3 {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--off-black);
+    margin-bottom: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .card h3::before {
+    content: '';
+    display: inline-block;
+    width: 3px; height: 15px;
+    background: var(--red);
+    flex-shrink: 0;
+  }
+
+  .grid2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+  @media (max-width: 720px) { .grid2 { grid-template-columns: 1fr; } }
+
+  /* ── RISK BARS ── */
+  .risk-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--light-grey);
+  }
+  .risk-row:last-child { border-bottom: none; }
+  .risk-unit {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--off-black);
+    flex: 0 0 115px;
+  }
+  .risk-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: var(--light-grey);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .risk-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width .55s cubic-bezier(.4,0,.2,1);
+  }
+  .risk-pct { font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: 700; min-width: 34px; text-align: right; }
+  .risk-chip {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 8px;
+    min-width: 60px;
+    text-align: center;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .chip-high { background: var(--red); color: var(--white); }
+  .chip-mod  { background: var(--yellow-solid); color: var(--black); }
+  .chip-low  { background: var(--green); color: var(--white); }
+
+  /* ── SCHEDULE TABLE ── */
+  .sched-row {
+    display: grid;
+    grid-template-columns: 1fr 95px 95px 68px;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--light-grey);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    gap: 8px;
+  }
+  .sched-row:last-child { border-bottom: none; }
+  .sched-row.header {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--mid-grey);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding-bottom: 9px;
+    border-bottom: 2px solid var(--off-black);
+  }
+  .sched-unit { font-weight: 700; color: var(--off-black); }
+  .sched-num  { color: var(--dark-grey); font-size: 12px; }
+  .sched-cost { font-weight: 700; color: var(--off-black); text-align: right; }
+
+  /* ── CHARTS ── */
+  .chart-wrap  { position: relative; height: 220px; width: 100%; }
+  .chart-wrap2 { position: relative; height: 185px; width: 100%; }
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 12px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: var(--dark-grey);
+    font-weight: 600;
+  }
+  .chart-legend span { display: flex; align-items: center; gap: 6px; }
+  .chart-legend i {
+    display: inline-block;
+    width: 10px; height: 10px;
+    flex-shrink: 0;
+  }
+
+  /* ── INSIGHTS ── */
+  .insight {
+    background: var(--off-white);
+    border-left: 3px solid var(--navy);
+    padding: 11px 15px;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    color: var(--dark-grey);
+    line-height: 1.65;
+    margin-bottom: 9px;
+  }
+  .insight:last-child { margin-bottom: 0; }
+  .insight strong { font-weight: 700; color: var(--off-black); }
+  .insight .itag {
+    display: inline-block;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 9px;
+    margin-right: 7px;
+    letter-spacing: 0.06em;
+    vertical-align: middle;
+    text-transform: uppercase;
+  }
+  .itag-critical { background: var(--red); color: var(--white); }
+  .itag-monitor  { background: var(--yellow-solid); color: var(--black); }
+  .itag-cost     { background: var(--navy); color: var(--white); }
+  .itag-stable   { background: var(--green); color: var(--white); }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 1.75rem 2rem;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: var(--mid-grey);
+    border-top: 2px solid var(--navy);
+    margin-top: 0.5rem;
+    line-height: 1.8;
+    background: var(--black);
+    color: rgba(255,255,255,0.45);
+  }
+  .footer strong { color: rgba(255,255,255,0.80); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="topnav">
+  <div class="topnav-brand">
+    <div class="dot"></div>
+    <span>Predictive Staffing &amp; Burnout Risk Model</span>
+  </div>
+  <div class="topnav-right">Portfolio project &nbsp;·&nbsp; Estimates based on published benchmarks</div>
+</nav>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="header-eyebrow">Interior Health Authority &nbsp;·&nbsp; Workforce Analytics</div>
+    <h1>Predictive Staffing &amp; <em>Burnout Risk</em> Model</h1>
+    <p>Exploring what proactive workforce analytics could look like for IH — built as a portfolio project to demonstrate applied financial modelling and business analytics.</p>
+    <div class="header-badges">
+      <span class="badge badge-teal">&#9679;&nbsp; Interactive</span>
+      <span class="badge badge-white">Mark Chunga &nbsp;·&nbsp; MBA (Finance) &nbsp;·&nbsp; MSc (IS &amp; Business Analytics)</span>
+      <span class="badge badge-yellow">&#9888;&nbsp; Estimates only — not actual IH operational data</span>
+    </div>
+  </div>
+</header>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer">
+  <strong>Note:</strong> All figures in this dashboard are estimates calibrated to CIHI 2024 benchmarks and BC Ministry of Health data, not actual Interior Health operational data. 
+
+<!-- MAIN -->
+<main class="main">
+
+  <div class="section-label">Adjust inputs — outputs update in real time</div>
+  <div class="controls-panel">
+    <div class="controls-grid">
+      <div class="ctrl">
+        <label>Unit Type</label>
+        <select id="sel-unit" onchange="recalc()">
+          <option value="ED">Emergency Department</option>
+          <option value="ICU">Intensive Care Unit</option>
+          <option value="MED">Medical / Surgical</option>
+          <option value="PSYCH">Psychiatric</option>
+          <option value="PEDS">Pediatrics</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label>Daily Patient Volume</label>
+        <input type="range" id="rng-vol" min="10" max="120" value="68" oninput="recalc()">
+        <div class="ctrl-val" id="out-vol">68 patients</div>
+      </div>
+      <div class="ctrl">
+        <label>Seasonal Illness Index</label>
+        <input type="range" id="rng-season" min="1" max="10" value="6" oninput="recalc()">
+        <div class="ctrl-val" id="out-season">6 / 10 — Moderate</div>
+      </div>
+      <div class="ctrl">
+        <label>Staff Sick Call Rate</label>
+        <input type="range" id="rng-sick" min="2" max="25" value="9" oninput="recalc()">
+        <div class="ctrl-val" id="out-sick">9%</div>
+      </div>
+      <div class="ctrl">
+        <label>Shift Length</label>
+        <select id="sel-shift" onchange="recalc()">
+          <option value="8">8-hour shifts</option>
+          <option value="10">10-hour shifts</option>
+          <option value="12" selected>12-hour shifts</option>
+        </select>
+      </div>
+      <div class="ctrl">
+        <label>Consecutive Shift Days</label>
+        <input type="range" id="rng-consec" min="2" max="7" value="4" oninput="recalc()">
+        <div class="ctrl-val" id="out-consec">4 days</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">Current model outputs</div>
+  <div class="metrics-grid" id="metrics-grid"></div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>Burnout risk by unit type</h3>
+      <div id="unit-risks"></div>
+    </div>
+    <div class="card">
+      <h3>Optimal staffing &amp; daily cost by unit</h3>
+      <div class="sched-row header">
+        <span>Unit</span><span>FTE Needed</span><span>Daily Cost</span><span>Status</span>
+      </div>
+      <div id="sched-rows"></div>
+      <div style="margin-top:11px;padding-top:9px;border-top:1px solid var(--grey-200);font-size:12px;color:var(--grey-400);font-weight:500">
+        All units combined (daily): <strong id="total-daily" style="color:var(--grey-900)">—</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:1.25rem">
+    <h3>12-month staffing &amp; volume forecast</h3>
+    <div class="chart-legend">
+      <span><i style="background:#1B2F4E"></i>Patient volume</span>
+      <span><i style="background:#1A7A3C"></i>Optimal FTE required</span>
+      <span><i style="background:#C41E2A;opacity:.7"></i>Burnout threshold</span>
+    </div>
+    <div class="chart-wrap"><canvas id="chart-forecast"></canvas></div>
+  </div>
+
+  <div class="grid2" style="margin-bottom:1.25rem">
+    <div class="card">
+      <h3>Sick call rate vs. coverage gap (FTE)</h3>
+      <div class="chart-wrap2"><canvas id="chart-sick"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Shift length vs. burnout score</h3>
+      <div class="chart-wrap2"><canvas id="chart-shift"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-label">Analysis &amp; recommendations</div>
+  <div class="card" style="margin-bottom:1.25rem">
+    <div id="insights"></div>
+  </div>
+
+</main>
+
+<footer class="footer">
+  Built by <strong>Mark Chunga</strong> &nbsp;·&nbsp; MBA (Finance), MSc (IS &amp; Business Analytics) &nbsp;·&nbsp; Interior Health Authority Portfolio Project &nbsp;·&nbsp; June 2026<br>
+  Burnout index grounded in the Maslach Burnout Inventory framework &nbsp;·&nbsp; Staffing and cost benchmarks from CIHI 2024 and BC Ministry of Health Annual Service Plan 2024/25<br>
+  <span style="color:var(--yellow-border)">&#9888; All figures are estimates for demonstration purposes. This is not actual Interior Health Authority operational data.</span>
+</footer>
+
+<script>
+const UNITS = {
+  ED:    { name:'Emergency Dept',     base:22, acuity:1.35, costHr:62, ratio:3.5,  burnBase:0.72 },
+  ICU:   { name:'Intensive Care',     base:16, acuity:1.60, costHr:72, ratio:2.0,  burnBase:0.78 },
+  MED:   { name:'Medical / Surgical', base:18, acuity:1.10, costHr:54, ratio:5.0,  burnBase:0.55 },
+  PSYCH: { name:'Psychiatric',        base:14, acuity:1.25, costHr:58, ratio:4.0,  burnBase:0.68 },
+  PEDS:  { name:'Pediatrics',         base:12, acuity:1.20, costHr:60, ratio:4.5,  burnBase:0.51 },
+};
+const ALL_UNITS  = Object.keys(UNITS);
+const MONTHS     = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const SEASON_IDX = [0.85,0.90,0.80,0.75,0.78,0.88,1.00,1.05,0.82,0.80,0.92,1.10];
+let cForecast, cSick, cShift;
+
+function getVals() {
+  return {
+    unit:   document.getElementById('sel-unit').value,
+    vol:    +document.getElementById('rng-vol').value,
+    season: +document.getElementById('rng-season').value,
+    sick:   +document.getElementById('rng-sick').value,
+    shift:  +document.getElementById('sel-shift').value,
+    consec: +document.getElementById('rng-consec').value,
+  };
+}
+function seasonLabel(s) { return s<=3?'Low':s<=6?'Moderate':s<=8?'High':'Peak'; }
+function burnoutScore(vol,season,sick,shift,consec,acuity) {
+  return Math.min(0.99,
+    (vol/120)*0.30 + (season/10)*0.20 + (sick/25)*0.20 +
+    (shift===12?0.20:shift===10?0.13:0.08) +
+    (consec/7)*0.15 + (acuity-1)*0.25
+  );
+}
+function optimalFTE(vol,sick,acuity,ratio,shift) {
+  const adj = Math.ceil((vol*acuity)/ratio);
+  const buf = Math.ceil(adj*(1+sick/100));
+  return Math.round(buf*(shift===8?1.15:shift===10?1.05:1.0));
+}
+function dailyCost(fte,costHr,shift) { return fte*costHr*shift; }
+function riskColor(s) { return s>=0.70?'#C41E2A':s>=0.45?'#F0A500':'#1A7A3C'; }
+function riskChip(s) {
+  if(s>=0.70) return `<span class="risk-chip chip-high">High Risk</span>`;
+  if(s>=0.45) return `<span class="risk-chip chip-mod">Moderate</span>`;
+  return `<span class="risk-chip chip-low">Low Risk</span>`;
+}
+function metricClass(s) { return s>=0.70?'danger':s>=0.45?'warn':'ok'; }
+function fmt(n) { return '$'+Math.round(n).toLocaleString(); }
+
+function recalc() {
+  const v = getVals(), u = UNITS[v.unit];
+  document.getElementById('out-vol').textContent    = `${v.vol} patients`;
+  document.getElementById('out-season').textContent = `${v.season} / 10 — ${seasonLabel(v.season)}`;
+  document.getElementById('out-sick').textContent   = `${v.sick}%`;
+  document.getElementById('out-consec').textContent = `${v.consec} days`;
+
+  const bScore = burnoutScore(v.vol,v.season,v.sick,v.shift,v.consec,u.acuity);
+  const fte    = optimalFTE(v.vol,v.sick,u.acuity,u.ratio,v.shift);
+  const buffer = Math.max(0,Math.round(fte*v.sick/100));
+  const dc     = dailyCost(fte,u.costHr,v.shift);
+  const mc     = dc*30;
+  const bPct   = Math.round(bScore*100);
+  const bLabel = bScore>=0.70?'Intervention required':bScore>=0.45?'Monitor closely':'Within safe range';
+
+  document.getElementById('metrics-grid').innerHTML = `
+    <div class="metric-card ${metricClass(bScore)}">
+      <div class="metric-label">Burnout Risk Score</div>
+      <div class="metric-value">${bPct}%</div>
+      <div class="metric-sub">${bLabel}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Optimal Staffing</div>
+      <div class="metric-value">${fte} FTE</div>
+      <div class="metric-sub">Incl. ${buffer} sick call buffer</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Daily Labour Cost</div>
+      <div class="metric-value">${fmt(dc)}</div>
+      <div class="metric-sub">${v.shift}h shifts · ${u.name.split('/')[0].trim()}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Monthly Cost (Est.)</div>
+      <div class="metric-value">${fmt(mc)}</div>
+      <div class="metric-sub">30-day projection</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Annual Cost (Est.)</div>
+      <div class="metric-value">${fmt(mc*12)}</div>
+      <div class="metric-sub">12-month total</div>
+    </div>`;
+
+  document.getElementById('unit-risks').innerHTML = ALL_UNITS.map(k => {
+    const uu = UNITS[k];
+    const bs = Math.min(0.99,burnoutScore(v.vol,v.season,v.sick,v.shift,v.consec,uu.acuity)*uu.burnBase*1.45);
+    return `<div class="risk-row">
+      <div class="risk-unit">${uu.name}</div>
+      <div class="risk-bar-wrap"><div class="risk-bar" style="width:${Math.round(bs*100)}%;background:${riskColor(bs)}"></div></div>
+      <div class="risk-pct" style="color:${riskColor(bs)}">${Math.round(bs*100)}%</div>
+      ${riskChip(bs)}</div>`;
+  }).join('');
+
+  let totalDc = 0;
+  document.getElementById('sched-rows').innerHTML = ALL_UNITS.map(k => {
+    const uu = UNITS[k];
+    const sf = optimalFTE(v.vol,v.sick,uu.acuity,uu.ratio,v.shift);
+    const sd = dailyCost(sf,uu.costHr,v.shift);
+    totalDc += sd;
+    const surge = sf > uu.base*1.3;
+    return `<div class="sched-row">
+      <span class="sched-unit">${uu.name.split('/')[0].trim()}</span>
+      <span class="sched-num">${sf} FTE · ${v.shift}h</span>
+      <span class="sched-cost">${fmt(sd)}</span>
+      <span class="${surge?'risk-chip chip-high':'risk-chip chip-low'}">${surge?'Surge':'OK'}</span></div>`;
+  }).join('');
+  document.getElementById('total-daily').textContent = fmt(totalDc);
+
+  buildForecast(v,u,fte);
+  buildSick(v,u,fte);
+  buildShift(v,u);
+  buildInsights(v,u,bScore,fte,buffer,dc);
+}
+
+function buildForecast(v,u,optFte) {
+  const volData   = MONTHS.map((_,i) => Math.round(v.vol*SEASON_IDX[i]*(1+v.season*0.02)));
+  const fteData   = MONTHS.map((_,i) => Math.round(optFte*SEASON_IDX[i]*(1+v.sick*0.008)));
+  const threshold = Array(12).fill(Math.round(u.base*1.3));
+  if(cForecast) cForecast.destroy();
+  cForecast = new Chart(document.getElementById('chart-forecast'),{
+    type:'line',
+    data:{ labels:MONTHS, datasets:[
+      { label:'Patient volume', data:volData, borderColor:'#1B2F4E', backgroundColor:'rgba(27,47,78,0.08)', tension:0.4, fill:true, pointRadius:3, borderWidth:2, yAxisID:'y' },
+      { label:'Optimal FTE',   data:fteData, borderColor:'#1A7A3C', backgroundColor:'rgba(26,122,60,0.07)', tension:0.4, fill:true, pointRadius:3, borderWidth:2, yAxisID:'y1' },
+      { label:'Burnout threshold', data:threshold, borderColor:'rgba(196,30,42,0.6)', borderDash:[6,4], tension:0, pointRadius:0, borderWidth:2, yAxisID:'y1' },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}${ctx.datasetIndex===0?' pts':' FTE'}` }}},
+      scales:{
+        x:{ grid:{ color:'rgba(0,0,0,0.04)' }, ticks:{ font:{ size:11, family:'Arial' }}},
+        y:{ position:'left', grid:{ color:'rgba(0,0,0,0.04)' }, ticks:{ font:{ size:10 }}, title:{ display:true, text:'Volume', font:{ size:10 }}},
+        y1:{ position:'right', grid:{ drawOnChartArea:false }, ticks:{ font:{ size:10 }}, title:{ display:true, text:'FTE', font:{ size:10 }}},
+      }}
+  });
+}
+
+function buildSick(v,u,optFte) {
+  const rates = [2,5,8,10,13,16,20,25];
+  const gaps  = rates.map(r => Math.max(0,Math.round(optFte*r/100)));
+  if(cSick) cSick.destroy();
+  cSick = new Chart(document.getElementById('chart-sick'),{
+    type:'bar',
+    data:{ labels:rates.map(r=>r+'%'), datasets:[{ label:'Coverage gap (FTE)', data:gaps,
+      backgroundColor:rates.map(r=>r>=15?'#C41E2A':r>=8?'#F0A500':'#1A7A3C'), borderRadius:4 }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.y} FTE gap` }}},
+      scales:{
+        x:{ ticks:{ font:{ size:10 }}, title:{ display:true, text:'Sick call rate', font:{ size:10 }}},
+        y:{ ticks:{ font:{ size:10 }}, title:{ display:true, text:'FTE gap', font:{ size:10 }}, grid:{ color:'rgba(0,0,0,0.04)' }}
+      }}
+  });
+}
+
+function buildShift(v,u) {
+  const scores = [8,10,12].map(sh => Math.round(burnoutScore(v.vol,v.season,v.sick,sh,v.consec,u.acuity)*100));
+  if(cShift) cShift.destroy();
+  cShift = new Chart(document.getElementById('chart-shift'),{
+    type:'bar',
+    data:{ labels:['8-hour','10-hour','12-hour'], datasets:[{ label:'Burnout score (%)', data:scores,
+      backgroundColor:scores.map(s=>s>=70?'#C41E2A':s>=45?'#F0A500':'#1A7A3C'), borderRadius:4 }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` Burnout score: ${ctx.parsed.y}%` }}},
+      scales:{
+        x:{ ticks:{ font:{ size:11 }}},
+        y:{ max:100, ticks:{ font:{ size:10 }}, title:{ display:true, text:'Score (%)', font:{ size:10 }}, grid:{ color:'rgba(0,0,0,0.04)' }}
+      }}
+  });
+}
+
+function buildInsights(v,u,bScore,fte,buffer,dc) {
+  const ins = [], bPct = Math.round(bScore*100);
+  if(bScore>=0.70) {
+    ins.push(`<span class="itag itag-critical">Action Needed</span><strong>${u.name}</strong> is at ${bPct}% burnout risk — past the threshold where monitoring is enough. The scheduling model needs to change: consider mandatory recovery days, overtime limits, and float pool support. Left unaddressed, burnout at this level drives attrition and erodes care quality.`);
+  } else if(bScore>=0.45) {
+    ins.push(`<span class="itag itag-monitor">Watch Closely</span><strong>${u.name}</strong> is at ${bPct}% burnout risk — not critical yet, but trending in a concerning direction. A proactive roster review and team check-in now is significantly cheaper than addressing a burnout crisis later.`);
+  } else {
+    ins.push(`<span class="itag itag-stable">On Track</span><strong>${u.name}</strong> burnout risk is at ${bPct}% — within a healthy range under these inputs. Continue current scheduling and revisit quarterly or when volume changes significantly.`);
+  }
+  if(v.sick>=15) {
+    ins.push(`<span class="itag itag-critical">Sick Calls</span>At ${v.sick}%, sick call volume is generating a ${buffer} FTE daily gap — that's a structural problem, not a short-term blip. Float pool or agency coverage is needed immediately, alongside a review of what's driving the absence rate.`);
+  } else if(v.sick>=8) {
+    ins.push(`<span class="itag itag-monitor">Sick Calls</span>The current ${v.sick}% sick call rate sits above IH's 6% benchmark. A ${buffer} FTE buffer is already built into the staffing model to cover it. If this rate continues to rise, it warrants a closer look at workload distribution and staff wellbeing.`);
+  }
+  if(v.shift===12&&v.consec>=5) {
+    ins.push(`<span class="itag itag-monitor">Shift Pattern</span>${v.consec} consecutive 12-hour shifts is a risk pattern worth addressing. The evidence is consistent — fatigue and error rates rise sharply after four consecutive shifts. A structured 3-on / 2-off rotation would reduce risk without significantly changing coverage levels.`);
+  }
+  if(v.season>=8) {
+    ins.push(`<span class="itag itag-monitor">Seasonal Surge</span>A seasonal index of ${v.season}/10 signals an approaching volume surge. Surge staffing arrangements — float pool, agency agreements, voluntary overtime — should be confirmed 6 to 8 weeks ahead of the peak period, not reactively once it arrives.`);
+  }
+  const dc8 = dailyCost(optimalFTE(v.vol,v.sick,u.acuity,u.ratio,8),u.costHr,8);
+  if(dc8<dc) {
+    ins.push(`<span class="itag itag-cost">Cost Consideration</span>Shifting to 8-hour rotations would reduce daily labour cost by ${fmt(dc-dc8)} for this unit. The tradeoff is real though — scheduling becomes more complex and most experienced staff prefer 12-hour shifts. Both scenarios should be modelled before making a change.`);
+  }
+  document.getElementById('insights').innerHTML = ins.map(i=>`<div class="insight">${i}</div>`).join('');
+}
+
+recalc();
+</script>
+</body>
+</html>
