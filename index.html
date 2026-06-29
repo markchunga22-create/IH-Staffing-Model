@@ -461,18 +461,18 @@
   <div class="header-inner">
     <div class="header-eyebrow">Interior Health Authority &nbsp;·&nbsp; Workforce Analytics</div>
     <h1>Predictive Staffing &amp; <em>Burnout Risk</em> Model</h1>
-    <p>A portfolio project demonstrating applied financial modelling and workforce analytics for a healthcare context.</p>
+    <p>A portfolio project demonstrating applied financial modelling and healthcare workforce analytics.</p>
     <div class="header-badges">
-      <span class="badge badge-red">&#9679;&nbsp; Interactive</span>
+      <span class="badge badge-green">&#9679;&nbsp; Interactive</span>
       <span class="badge badge-white">Mark Chunga &nbsp;·&nbsp; MBA (Finance) &nbsp;·&nbsp; MSc (IS &amp; Business Analytics)</span>
-      <span class="badge badge-yellow">&#9888;&nbsp; Estimates only — not actual IH operational data</span>
+      <span class="badge badge-yellow">&#9888;&nbsp; Estimates only, not actual IH operational data</span>
     </div>
   </div>
 </header>
 
 <!-- DISCLAIMER -->
 <div class="disclaimer">
-  <strong>Note:</strong> All figures are estimates calibrated to CIHI 2024 benchmarks and BC Ministry of Health data — not actual Interior Health operational data.
+  <strong>Note:</strong> All figures are estimates calibrated to CIHI 2024 benchmarks and BC Ministry of Health data, not actual Interior Health operational data.
 </div>
 
 <!-- MAIN -->
@@ -754,26 +754,26 @@ function buildShift(v,u) {
 function buildInsights(v,u,bScore,fte,buffer,dc) {
   const ins = [], bPct = Math.round(bScore*100);
   if(bScore>=0.70) {
-    ins.push(`<span class="itag itag-critical">Action Needed</span><strong>${u.name}</strong> is at ${bPct}% burnout risk — past the threshold where monitoring is enough. The scheduling model needs to change: consider mandatory recovery days, overtime limits, and float pool support. Left unaddressed, burnout at this level drives attrition and erodes care quality.`);
+    ins.push(`<span class="itag itag-critical">Action Needed</span><strong>${u.name}</strong> is at ${bPct}% burnout risk, past the threshold where monitoring is enough. The scheduling model needs to change: consider mandatory recovery days, overtime limits, and float pool support. Left unaddressed, burnout at this level drives attrition and erodes care quality.`);
   } else if(bScore>=0.45) {
-    ins.push(`<span class="itag itag-monitor">Watch Closely</span><strong>${u.name}</strong> is at ${bPct}% burnout risk — not critical yet, but trending in a concerning direction. A proactive roster review and team check-in now is significantly cheaper than addressing a burnout crisis later.`);
+    ins.push(`<span class="itag itag-monitor">Watch Closely</span><strong>${u.name}</strong> is at ${bPct}% burnout risk, not critical yet, but trending in a concerning direction. A proactive roster review and team check-in now is significantly cheaper than addressing a burnout crisis later.`);
   } else {
-    ins.push(`<span class="itag itag-stable">On Track</span><strong>${u.name}</strong> burnout risk is at ${bPct}% — within a healthy range under these inputs. Continue current scheduling and revisit quarterly or when volume changes significantly.`);
+    ins.push(`<span class="itag itag-stable">On Track</span><strong>${u.name}</strong> burnout risk is at ${bPct}%, within a healthy range under these inputs. Continue current scheduling and revisit quarterly or when volume changes significantly.`);
   }
   if(v.sick>=15) {
-    ins.push(`<span class="itag itag-critical">Sick Calls</span>At ${v.sick}%, sick call volume is generating a ${buffer} FTE daily gap — that's a structural problem, not a short-term blip. Float pool or agency coverage is needed immediately, alongside a review of what's driving the absence rate.`);
+    ins.push(`<span class="itag itag-critical">Sick Calls</span>At ${v.sick}%, sick call volume is generating a ${buffer} FTE daily gap, that's a structural problem, not a short-term blip. Float pool or agency coverage is needed immediately, alongside a review of what's driving the absence rate.`);
   } else if(v.sick>=8) {
     ins.push(`<span class="itag itag-monitor">Sick Calls</span>The current ${v.sick}% sick call rate sits above IH's 6% benchmark. A ${buffer} FTE buffer is already built into the staffing model to cover it. If this rate continues to rise, it warrants a closer look at workload distribution and staff wellbeing.`);
   }
   if(v.shift===12&&v.consec>=5) {
-    ins.push(`<span class="itag itag-monitor">Shift Pattern</span>${v.consec} consecutive 12-hour shifts is a risk pattern worth addressing. The evidence is consistent — fatigue and error rates rise sharply after four consecutive shifts. A structured 3-on / 2-off rotation would reduce risk without significantly changing coverage levels.`);
+    ins.push(`<span class="itag itag-monitor">Shift Pattern</span>${v.consec} consecutive 12-hour shifts is a risk pattern worth addressing. The evidence is consistent, fatigue and error rates rise sharply after four consecutive shifts. A structured 3-on / 2-off rotation would reduce risk without significantly changing coverage levels.`);
   }
   if(v.season>=8) {
-    ins.push(`<span class="itag itag-monitor">Seasonal Surge</span>A seasonal index of ${v.season}/10 signals an approaching volume surge. Surge staffing arrangements — float pool, agency agreements, voluntary overtime — should be confirmed 6 to 8 weeks ahead of the peak period, not reactively once it arrives.`);
+    ins.push(`<span class="itag itag-monitor">Seasonal Surge</span>A seasonal index of ${v.season}/10 signals an approaching volume surge. Surge staffing arrangements, float pool, agency agreements, voluntary overtime, should be confirmed 6 to 8 weeks ahead of the peak period, not reactively once it arrives.`);
   }
   const dc8 = dailyCost(optimalFTE(v.vol,v.sick,u.acuity,u.ratio,8),u.costHr,8);
   if(dc8<dc) {
-    ins.push(`<span class="itag itag-cost">Cost Note</span>Shifting to 8-hour rotations would reduce daily labour cost by ${fmt(dc-dc8)} for this unit. The tradeoff is real — scheduling becomes more complex and most experienced staff prefer 12-hour shifts. Both scenarios should be modelled before making a change.`);
+    ins.push(`<span class="itag itag-cost">Cost Note</span>Shifting to 8-hour rotations would reduce daily labour cost by ${fmt(dc-dc8)} for this unit. The tradeoff is real, scheduling becomes more complex and most experienced staff prefer 12-hour shifts. Both scenarios should be modelled before making a change.`);
   }
   document.getElementById('insights').innerHTML = ins.map(i=>`<div class="insight">${i}</div>`).join('');
 }
