@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staffing & Burnout Risk, IH Portfolio · Mark Chunga</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red:   #C41E2A;
+    --green: #1A7A3C;
+    --amber: #D97706;
+    --ink:   #000;
+    --faded: #111;
+    --muted: #444;
+    --bg:    #F6F5F2;
+    --white: #fff;
+    --line:  #E2E0DB;
+    --line-strong: #C5C2BB;
+  }
+
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .nav {
+    height: 44px;
+    background: var(--ink);
+    color: #fff;
+    padding: 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .nav-name { font-size: 13px; font-weight: 700; }
+  .nav-meta  { font-size: 12px; color: rgba(255,255,255,0.65); }
+
+  .app {
+    display: flex;
+    height: calc(100vh - 44px);
+    overflow: hidden;
+  }
+
+  .sidebar {
+    width: 196px;
+    flex-shrink: 0;
+    background: var(--white);
+    border-right: 1px solid var(--line);
+    padding: 1rem 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+  }
+
+  .sidebar-intro {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    padding-bottom: 0.875rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .sidebar-intro strong { color: var(--ink); font-weight: 700; }
+
+  .sidebar-divider {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: -0.375rem;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--faded);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .field select {
+    appearance: none;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid var(--line-strong);
+    border-radius: 0;
+    padding: 3px 0;
+    font-size: 12px;
+    color: var(--ink);
+    cursor: pointer;
+    font-family: inherit;
+    width: 100%;
+  }
+  .field select:focus { outline: none; border-bottom-color: var(--ink); }
+  .field input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--line-strong);
+    border-radius: 0;
+    outline: none;
+    cursor: pointer;
+    margin-top: 3px;
+  }
+  .field input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 10px; height: 10px;
+    border-radius: 0;
+    background: var(--ink);
+    cursor: pointer;
+    transition: background .1s;
+  }
+  .field input[type=range]::-webkit-slider-thumb:hover { background: var(--red); }
+  .field-val { font-size: 12px; color: var(--ink); font-weight: 600; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+  .sidebar-footer strong { color: var(--faded); font-weight: 700; }
+
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .main-header {
+    padding: 0.75rem 1.5rem 0;
+    flex-shrink: 0;
+  }
+  .main-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .main-header h1 em { font-style: italic; color: var(--red); }
+  .main-header .meta-line {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .kpis {
+    flex-shrink: 0;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+    border-top: 1.5px solid var(--ink);
+    margin: 0.625rem 1.5rem 0;
+  }
+  .kpi {
+    padding: 0.625rem 1rem 0.625rem 0;
+    border-right: 1px solid var(--line);
+  }
+  .kpi:last-child { border-right: none; }
+  .kpi + .kpi { padding-left: 1rem; }
+  .kpi-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--faded);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .kpi-num {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .kpi.primary .kpi-num { font-size: 30px; }
+  .kpi.danger .kpi-num  { color: var(--red); }
+  .kpi.warn   .kpi-num  { color: var(--amber); }
+  .kpi.ok     .kpi-num  { color: var(--green); }
+  .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .kpi.primary .kpi-sub { font-weight: 600; color: var(--faded); }
+
+  .content-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 55fr 45fr;
+    gap: 1px;
+    background: var(--line);
+    margin: 0.625rem 1.5rem 0.75rem;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .col-left {
+    display: flex;
+    flex-direction: column;
+    background: var(--white);
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .forecast-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem 1rem 0.5rem;
+    overflow: hidden;
+    min-height: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .forecast-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    margin-bottom: 6px;
+  }
+  .chart-legend {
+    display: flex;
+    gap: 1rem;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .chart-legend span { display: flex; align-items: center; gap: 5px; }
+  /* Square swatch instead of line dash */
+  .chart-legend i {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    border-radius: 2px;
+  }
+  .forecast-canvas-wrap {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+  }
+
+  .findings-wrap {
+    flex-shrink: 0;
+    max-height: 38%;
+    overflow-y: auto;
+    padding: 0.5rem 1rem 0.625rem;
+  }
+
+  .col-right {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+    gap: 1px;
+    background: var(--line);
+  }
+
+  .risk-cost-wrap {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 55fr 45fr;
+    gap: 1px;
+    background: var(--line);
+    overflow: hidden;
+    min-height: 0;
+  }
+  .risk-panel, .cost-panel {
+    background: var(--white);
+    padding: 0.75rem 0.875rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .small-charts-wrap {
+    flex: 0 0 42%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .small-chart-panel {
+    background: var(--white);
+    padding: 0.75rem 0.875rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .small-chart-canvas-wrap {
+    flex: 1;
+    position: relative;
+    min-height: 0;
+  }
+
+  .panel-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--faded);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .risk-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .risk-row:last-child { border-bottom: none; }
+  .risk-name  { font-size: 12px; flex: 0 0 95px; color: var(--ink); }
+  .risk-track { flex: 1; height: 3px; background: var(--line); overflow: hidden; }
+  .risk-fill  { height: 100%; transition: width .4s ease; }
+  .risk-pct   { font-size: 12px; font-weight: 700; min-width: 28px; text-align: right; }
+  .risk-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 1px 7px;
+    min-width: 54px;
+    text-align: center;
+    border-radius: 999px;
+  }
+  .badge-critical { background: #FEE2E2; color: #B91C1C; }
+  .badge-watch    { background: #FEF3C7; color: #92400E; }
+  .badge-clear    { background: #D1FAE5; color: #065F46; }
+
+  .tbl-row {
+    display: grid;
+    grid-template-columns: 1fr 64px 78px 46px;
+    align-items: center;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 12px;
+    gap: 6px;
+  }
+  .tbl-row:last-child { border-bottom: none; }
+  .tbl-row.hdr {
+    font-weight: 700;
+    color: var(--faded);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .tbl-unit { font-weight: 600; }
+  .tbl-num  { color: var(--muted); }
+  .tbl-cost { font-weight: 700; text-align: right; }
+  .tbl-chip {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 0;
+    text-align: center;
+  }
+  .chip-surge   { background: var(--red); color: #fff; }
+  .chip-covered { background: #D1FAE5; color: #065F46; }
+  .total-row {
+    margin-top: auto;
+    padding-top: 6px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--faded);
+  }
+
+  .finding {
+    display: grid;
+    grid-template-columns: 76px 1fr;
+    gap: 0.875rem;
+    align-items: start;
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    line-height: 1.55;
+  }
+  .finding:first-child { border-top: none; }
+  .finding-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--faded);
+    padding-top: 2px;
+  }
+  .finding.alert .finding-label { color: var(--red); }
+  .finding.watch .finding-label { color: var(--amber); }
+  .finding.good  .finding-label { color: var(--green); }
+  .finding strong { font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <span class="nav-name">Predictive Staffing &amp; Burnout Risk</span>
+  <span class="nav-meta">Mark Chunga / IH Portfolio</span>
+</div>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <p class="sidebar-intro">Start with <strong>Unit Type</strong>, then adjust the inputs below. All panels update instantly as you change values.</p>
+
+    <div class="field">
+      <label>Unit Type</label>
+      <select id="sel-unit" onchange="recalc()">
+        <option value="ED">Emergency Dept</option>
+        <option value="ICU">Intensive Care</option>
+        <option value="MED">Medical / Surgical</option>
+        <option value="PSYCH">Psychiatric</option>
+        <option value="PEDS">Pediatrics</option>
+      </select>
+    </div>
+
+    <p class="sidebar-divider">Volume &amp; demand</p>
+
+    <div class="field">
+      <label>Daily Patient Volume</label>
+      <input type="range" id="rng-vol" min="10" max="120" value="68" oninput="recalc()">
+      <div class="field-val" id="out-vol">68 patients</div>
+    </div>
+
+    <div class="field">
+      <label>Seasonal Pressure</label>
+      <input type="range" id="rng-season" min="1" max="10" value="6" oninput="recalc()">
+      <div class="field-val" id="out-season">6/10, Moderate</div>
+    </div>
+
+    <p class="sidebar-divider">Workforce factors</p>
+
+    <div class="field">
+      <label>Sick Call Rate</label>
+      <input type="range" id="rng-sick" min="2" max="25" value="9" oninput="recalc()">
+      <div class="field-val" id="out-sick">9%</div>
+    </div>
+
+    <div class="field">
+      <label>Shift Length</label>
+      <select id="sel-shift" onchange="recalc()">
+        <option value="8">8-hour</option>
+        <option value="10">10-hour</option>
+        <option value="12" selected>12-hour</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Consecutive Days</label>
+      <input type="range" id="rng-consec" min="2" max="7" value="4" oninput="recalc()">
+      <div class="field-val" id="out-consec">4 days</div>
+    </div>
+
+    <div class="sidebar-footer">
+      <strong>Mark Chunga</strong>, MBA Finance, MSc IS &amp; Business Analytics. Interior Health portfolio, June 2026. Burnout model grounded in the Maslach Burnout Inventory. Benchmarks: CIHI 2024, BC Ministry of Health 2024/25.
+    </div>
+  </aside>
+
+  <div class="main">
+
+    <div class="main-header">
+      <h1>Staffing &amp; <em>Burnout Risk</em> Model</h1>
+      <p class="meta-line">Burnout is scored using six operational inputs. Volume and sick call rate carry the most weight because they directly determine the ratio of workload to capacity. Shift structure and acuity adjust the score based on how work is distributed and how cognitively demanding it is. The six weights sum to 100% and are cross-referenced against CIHI 2024 benchmarks and the Maslach Burnout Inventory.</p>
+    </div>
+
+    <div class="kpis" id="metrics-grid"></div>
+
+    <div class="content-grid">
+
+      <div class="col-left">
+        <div class="forecast-wrap">
+          <div class="forecast-top">
+            <span class="panel-label" style="margin-bottom:0">12-month volume &amp; staffing forecast</span>
+            <div class="chart-legend">
+              <span><i style="background:#1B2F4E"></i>Patient volume</span>
+              <span><i style="background:#1A7A3C"></i>FTE required</span>
+              <span><i style="background:#C41E2A;opacity:.5;border:1px dashed rgba(196,30,42,0.6)"></i>Burnout threshold</span>
+            </div>
+          </div>
+          <div class="forecast-canvas-wrap">
+            <canvas id="chart-forecast"></canvas>
+          </div>
+        </div>
+
+        <div class="findings-wrap">
+          <p class="panel-label">Findings</p>
+          <div id="insights"></div>
+        </div>
+      </div>
+
+      <div class="col-right">
+        <div class="risk-cost-wrap">
+          <div class="risk-panel">
+            <p class="panel-label">Burnout risk by unit</p>
+            <div id="unit-risks"></div>
+          </div>
+          <div class="cost-panel">
+            <p class="panel-label">Staffing &amp; cost</p>
+            <div class="tbl-row hdr">
+              <span>Unit</span><span>FTE</span><span>Cost/day</span><span></span>
+            </div>
+            <div id="sched-rows"></div>
+            <div class="total-row">
+              Combined daily: <strong id="total-daily" style="color:var(--ink)">—</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="small-charts-wrap">
+          <div class="small-chart-panel">
+            <p class="panel-label">Sick call rate vs. FTE gap</p>
+            <div class="small-chart-canvas-wrap">
+              <canvas id="chart-sick"></canvas>
+            </div>
+          </div>
+          <div class="small-chart-panel">
+            <p class="panel-label">Shift length vs. burnout score</p>
+            <div class="small-chart-canvas-wrap">
+              <canvas id="chart-shift"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const UNITS = {
+  ED:    { name:'Emergency Dept',     base:22, acuity:1.35, costHr:62, ratio:3.5 },
+  ICU:   { name:'Intensive Care',     base:16, acuity:1.60, costHr:72, ratio:2.0 },
+  MED:   { name:'Medical / Surgical', base:18, acuity:1.10, costHr:54, ratio:5.0 },
+  PSYCH: { name:'Psychiatric',        base:14, acuity:1.25, costHr:58, ratio:4.0 },
+  PEDS:  { name:'Pediatrics',         base:12, acuity:1.20, costHr:60, ratio:4.5 },
+};
+
+const ALL_UNITS       = Object.keys(UNITS);
+const MONTHS          = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTHLY_FACTORS = [0.85,0.90,0.80,0.75,0.78,0.88,1.00,1.05,0.82,0.80,0.92,1.10];
+
+let cForecast, cSick, cShift;
+
+function readControls() {
+  return {
+    unit:   document.getElementById('sel-unit').value,
+    vol:    +document.getElementById('rng-vol').value,
+    season: +document.getElementById('rng-season').value,
+    sick:   +document.getElementById('rng-sick').value,
+    shift:  +document.getElementById('sel-shift').value,
+    consec: +document.getElementById('rng-consec').value,
+  };
+}
+
+function seasonLabel(s) { return s<=3?'Low':s<=6?'Moderate':s<=8?'High':'Peak'; }
+
+function burnoutScore(vol, season, sick, shift, consec, acuity) {
+  const shiftContrib = ((shift - 8) / 4) * 0.15;
+  return Math.min(0.99,
+    (vol/120)*0.25 + (season/10)*0.15 + (sick/25)*0.18 +
+    shiftContrib + (consec/7)*0.12 + (acuity-1)*0.15
+  );
+}
+
+function optimalFTE(vol, sick, acuity, ratio, shift) {
+  const base = Math.ceil((vol * acuity) / ratio);
+  const buf  = Math.ceil(base * (1 + sick/100));
+  return Math.round(buf * (shift===8 ? 1.15 : shift===10 ? 1.05 : 1.0));
+}
+
+function dailyCost(fte, costHr, shift) { return fte * costHr * shift; }
+function riskColor(s) { return s>=0.70?'#C41E2A':s>=0.45?'#D97706':'#1A7A3C'; }
+
+function riskBadge(s) {
+  if (s>=0.70) return `<span class="risk-badge badge-critical">High</span>`;
+  if (s>=0.45) return `<span class="risk-badge badge-watch">Moderate</span>`;
+  return `<span class="risk-badge badge-clear">Low</span>`;
+}
+
+function scoreClass(s) { return s>=0.70?'danger':s>=0.45?'warn':'ok'; }
+function fmt(n) { return '$'+Math.round(n).toLocaleString(); }
+
+function recalc() {
+  const v = readControls();
+  const u = UNITS[v.unit];
+
+  document.getElementById('out-vol').textContent    = `${v.vol} patients`;
+  document.getElementById('out-season').textContent = `${v.season}/10, ${seasonLabel(v.season)}`;
+  document.getElementById('out-sick').textContent   = `${v.sick}%`;
+  document.getElementById('out-consec').textContent = `${v.consec} days`;
+
+  const bScore  = burnoutScore(v.vol, v.season, v.sick, v.shift, v.consec, u.acuity);
+  const fte     = optimalFTE(v.vol, v.sick, u.acuity, u.ratio, v.shift);
+  const buffer  = Math.max(0, Math.round(fte * v.sick / 100));
+  const dc      = dailyCost(fte, u.costHr, v.shift);
+  const bufCost = dailyCost(buffer, u.costHr, v.shift);
+  const bPct    = Math.round(bScore * 100);
+  const bLabel  = bScore>=0.70 ? 'Intervention required' : bScore>=0.45 ? 'Monitor closely' : 'Within safe range';
+
+  // Replace monthly cost with buffer cost — more analytically useful
+  document.getElementById('metrics-grid').innerHTML = `
+    <div class="kpi primary ${scoreClass(bScore)}">
+      <div class="kpi-label">Burnout Risk Score</div>
+      <div class="kpi-num">${bPct}%</div>
+      <div class="kpi-sub">${bLabel}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">FTE Required</div>
+      <div class="kpi-num">${fte}</div>
+      <div class="kpi-sub">incl. ${buffer} sick buffer</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Daily Labour Cost</div>
+      <div class="kpi-num">${fmt(dc)}</div>
+      <div class="kpi-sub">${v.shift}h shifts</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Sick Call Cost/day</div>
+      <div class="kpi-num">${fmt(bufCost)}</div>
+      <div class="kpi-sub">${buffer} buffer nurses</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Annual Labour Cost</div>
+      <div class="kpi-num">${fmt(dc * 365)}</div>
+      <div class="kpi-sub">365-day projection</div>
+    </div>`;
+
+  const unitScores = ALL_UNITS.map(k =>
+    burnoutScore(v.vol, v.season, v.sick, v.shift, v.consec, UNITS[k].acuity)
+  );
+  const scoreSpread = Math.max(...unitScores) - Math.min(...unitScores);
+
+  document.getElementById('unit-risks').innerHTML = ALL_UNITS.map((k, i) => {
+    const uu = UNITS[k];
+    const bs = unitScores[i];
+    return `<div class="risk-row">
+      <div class="risk-name">${uu.name}</div>
+      <div class="risk-track"><div class="risk-fill" style="width:${Math.round(bs*100)}%;background:${riskColor(bs)}"></div></div>
+      <div class="risk-pct" style="color:${riskColor(bs)}">${Math.round(bs*100)}%</div>
+      ${riskBadge(bs)}</div>`;
+  }).join('');
+
+  let totalDc = 0;
+  document.getElementById('sched-rows').innerHTML = ALL_UNITS.map(k => {
+    const uu = UNITS[k];
+    const sf = optimalFTE(v.vol, v.sick, uu.acuity, uu.ratio, v.shift);
+    const sd = dailyCost(sf, uu.costHr, v.shift);
+    totalDc += sd;
+    const surge = sf > uu.base * 1.3;
+    return `<div class="tbl-row">
+      <span class="tbl-unit">${uu.name.split('/')[0].trim()}</span>
+      <span class="tbl-num">${sf} · ${v.shift}h</span>
+      <span class="tbl-cost">${fmt(sd)}</span>
+      <span class="tbl-chip ${surge?'chip-surge':'chip-covered'}">${surge?'Surge':'OK'}</span></div>`;
+  }).join('');
+  document.getElementById('total-daily').textContent = fmt(totalDc);
+
+  drawForecast(v, u, fte);
+  sickRateChart(v, u, fte);
+  shiftScoreChart(v, u);
+  writeFindings(v, u, bScore, fte, buffer, dc, bufCost, scoreSpread);
+}
+
+function drawForecast(v, u, optFte) {
+  const volData   = MONTHLY_FACTORS.map(f => Math.round(v.vol * f * (1 + v.season * 0.02)));
+  const fteData   = MONTHLY_FACTORS.map(f => Math.round(optFte * f * (1 + v.sick * 0.008)));
+  const threshold = Array(12).fill(Math.round(u.base * 1.3));
+  if (cForecast) cForecast.destroy();
+  cForecast = new Chart(document.getElementById('chart-forecast'), {
+    type: 'line',
+    data: { labels: MONTHS, datasets: [
+      { label:'Patient volume',    data:volData,   borderColor:'#1B2F4E', backgroundColor:'rgba(27,47,78,0.07)',  tension:0.4, fill:true, pointRadius:2, borderWidth:2, yAxisID:'y'  },
+      { label:'FTE required',      data:fteData,   borderColor:'#1A7A3C', backgroundColor:'rgba(26,122,60,0.06)', tension:0.4, fill:true, pointRadius:2, borderWidth:2, yAxisID:'y1' },
+      { label:'Burnout threshold', data:threshold, borderColor:'rgba(196,30,42,0.45)', borderDash:[5,4], tension:0, pointRadius:0, borderWidth:1.5, yAxisID:'y1' },
+    ]},
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display:false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y}${ctx.datasetIndex===0?' pts':' FTE'}` }}
+      },
+      scales: {
+        x:  { grid:{ color:'rgba(0,0,0,0.04)' }, ticks:{ font:{ size:12, family:'Arial' }}},
+        y:  { position:'left',  grid:{ color:'rgba(0,0,0,0.04)' }, ticks:{ font:{ size:12, family:'Arial' }}, title:{ display:true, text:'Volume', font:{ size:12, family:'Arial' }}},
+        y1: { position:'right', grid:{ drawOnChartArea:false },    ticks:{ font:{ size:12, family:'Arial' }}, title:{ display:true, text:'FTE',    font:{ size:12, family:'Arial' }}},
+      }
+    }
+  });
+}
+
+function sickRateChart(v, u, optFte) {
+  const rates = [2,5,8,10,13,16,20,25];
+  const gaps  = rates.map(r => Math.max(0, Math.round(optFte * r / 100)));
+  if (cSick) cSick.destroy();
+  cSick = new Chart(document.getElementById('chart-sick'), {
+    type: 'bar',
+    data: { labels: rates.map(r => r+'%'), datasets:[{
+      label:'Coverage gap (FTE)', data:gaps,
+      backgroundColor: rates.map(r => r>=15?'rgba(196,30,42,0.75)':r>=8?'rgba(217,119,6,0.75)':'rgba(26,122,60,0.75)'),
+      borderRadius: 0
+    }]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` ${ctx.parsed.y} FTE gap` }}},
+      scales:{
+        x:{ ticks:{ font:{ size:12, family:'Arial' }}, title:{ display:true, text:'Sick call rate', font:{ size:12, family:'Arial' }}, grid:{ display:false }},
+        y:{ ticks:{ font:{ size:12, family:'Arial' }}, title:{ display:true, text:'FTE gap',        font:{ size:12, family:'Arial' }}, grid:{ color:'rgba(0,0,0,0.04)' }}
+      }
+    }
+  });
+}
+
+function shiftScoreChart(v, u) {
+  const scores = [8,10,12].map(sh => Math.round(burnoutScore(v.vol, v.season, v.sick, sh, v.consec, u.acuity) * 100));
+  if (cShift) cShift.destroy();
+  cShift = new Chart(document.getElementById('chart-shift'), {
+    type: 'bar',
+    data: { labels:['8-hour','10-hour','12-hour'], datasets:[{
+      label:'Burnout score (%)', data:scores,
+      backgroundColor: scores.map(s => s>=70?'rgba(196,30,42,0.75)':s>=45?'rgba(217,119,6,0.75)':'rgba(26,122,60,0.75)'),
+      borderRadius: 0
+    }]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ display:false }, tooltip:{ callbacks:{ label: ctx => ` Burnout score: ${ctx.parsed.y}%` }}},
+      scales:{
+        x:{ ticks:{ font:{ size:12, family:'Arial' }}, grid:{ display:false }},
+        y:{ max:100, ticks:{ font:{ size:12, family:'Arial' }}, title:{ display:true, text:'Score (%)', font:{ size:12, family:'Arial' }}, grid:{ color:'rgba(0,0,0,0.04)' }}
+      }
+    }
+  });
+}
+
+function writeFindings(v, u, bScore, fte, buffer, dc, bufCost, scoreSpread) {
+  const rows = [];
+  const bPct = Math.round(bScore * 100);
+
+  if (bScore >= 0.70) {
+    rows.push(`<div class="finding alert"><div class="finding-label">Critical</div><div>
+      <strong>${u.name}</strong> is at ${bPct}% burnout risk, above the intervention threshold. This is not a monitoring situation — the scheduling model needs structural change. Mandatory recovery days, overtime caps, and float pool activation should be considered now. At this risk level, both attrition probability and care quality degradation are measurably elevated. The longer action is deferred, the higher the recovery cost.</div></div>`);
+  } else if (bScore >= 0.45) {
+    rows.push(`<div class="finding watch"><div class="finding-label">Monitor</div><div>
+      <strong>${u.name}</strong> is at ${bPct}% burnout risk, below the critical threshold but elevated. A roster review at this stage costs a fraction of what a burnout-driven attrition cycle costs to recover from.</div></div>`);
+  } else {
+    rows.push(`<div class="finding good"><div class="finding-label">Stable</div><div>
+      <strong>${u.name}</strong> burnout risk is at ${bPct}%, within a healthy operational range. Revisit if volume or sick call rate shifts materially.</div></div>`);
+  }
+
+  if (v.sick >= 15) {
+    rows.push(`<div class="finding alert"><div class="finding-label">Sick calls</div><div>
+      At ${v.sick}%, the sick call rate is generating a ${buffer} FTE daily coverage gap costing ${fmt(bufCost)} per day in buffer staffing alone. A rate this high is usually a downstream signal of existing burnout. Covering the gap without investigating the cause is treating the symptom.</div></div>`);
+  } else if (v.sick >= 8) {
+    rows.push(`<div class="finding watch"><div class="finding-label">Sick calls</div><div>
+      ${v.sick}% exceeds the IH 6% benchmark. The ${buffer}-nurse buffer (${fmt(bufCost)}/day) is factored into the staffing figure. Continued increases warrant a closer look at workload distribution.</div></div>`);
+  }
+
+  if (v.shift === 12 && v.consec >= 5) {
+    rows.push(`<div class="finding watch"><div class="finding-label">Shift pattern</div><div>
+      ${v.consec} consecutive 12-hour shifts exceeds the evidence threshold for fatigue-related error. A 3-on, 2-off structure reduces the burnout score without materially changing coverage math.</div></div>`);
+  }
+
+  if (v.season >= 8) {
+    rows.push(`<div class="finding watch"><div class="finding-label">Seasonal surge</div><div>
+      Seasonal pressure at ${v.season}/10 puts this near a peak volume period. Float pool and agency agreements need to be confirmed 6 to 8 weeks ahead, not after the peak arrives.</div></div>`);
+  }
+
+  const dc8 = dailyCost(optimalFTE(v.vol, v.sick, u.acuity, u.ratio, 8), u.costHr, 8);
+  if (dc8 < dc) {
+    rows.push(`<div class="finding"><div class="finding-label">Cost</div><div>
+      8-hour rotations would cut daily labour cost by ${fmt(dc - dc8)} for this unit. More bodies at shorter hours costs less than fewer bodies at longer hours under current rates.</div></div>`);
+  }
+
+  // Flag when all unit scores converge — shared inputs dominating over unit-specific acuity
+  if (scoreSpread < 0.10) {
+    rows.push(`<div class="finding"><div class="finding-label">Note</div><div>
+      All units are scoring within ${Math.round(scoreSpread * 100)}% of each other. Under these inputs, volume and shift structure are driving the score more than unit-specific acuity. Vary the unit type at lower volumes to see acuity create meaningful separation.</div></div>`);
+  }
+
+  document.getElementById('insights').innerHTML = rows.join('');
+}
+
+recalc();
+</script>
+</body>
+</html>
